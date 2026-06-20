@@ -1,0 +1,114 @@
+import network
+import socket
+import time
+
+SSID = "HRC-01"
+PASSWORD = "xiao1234"
+PORT = 80
+
+def start_access_point() -> network.WLAN:
+    """
+    Start a Wi-Fi Access Point with the specified SSID and PASSWORD
+
+    args:
+        None
+
+    returns:
+        network.WLAN: The access point object (ap)
+    """
+
+    ap = network.WLAN(network.AP_IF) #create access point interface (ap = access point)
+    ap.active(False)
+    time.sleep(1)
+    ap.active(True)
+
+    #force secured AP mode
+    authmode = getattr(network, "AUTH_WPA_WPA2_PSK", None)
+    ap.config(essid=SSID, password=PASSWORD, authmode=authmode) #Sets Auth
+
+    while not ap.active():
+        time.sleep(0.1)
+
+    print("SSID:", SSID)
+    print("Password:", PASSWORD)
+    print("IP:", ap.ifconfig()[0])
+
+    return ap
+
+def check_for_connections(ap:network.WLAN) -> bool:
+    """
+    Check for connected devices to the access point.
+    Return True if at least one device is connected, otherwise False
+
+    args:
+        ap (network.WLAN): The access point object
+    
+    returns:
+        bool: True if at least one device is connected, otherwise False
+    """
+
+    connected_devices = ap.status('stations')
+    return True if connected_devices else False
+
+
+HTML = """
+<!DOCTYPE html>
+<html>
+<head>
+    <title>HRC-01 Dashboard</title>
+</head>
+<body>
+    <h1>HRC-01 Control Panel</h1>
+    <button onclick="showAlert()">Click Me</button>
+    
+    <script>
+        function showAlert() {
+            alert("You cliked me!");
+        }
+    </script>
+</body>
+</html>
+""" #to be updated with telemetry and other things later
+
+def setup_web_server(port=PORT) -> socket.socket:
+    """
+    Set up a simple web server that serves the HTML page
+
+    args:
+        port (int): The port number to listen on (default is 80)
+
+    returns:
+        socket.socket: The server socket object
+    """
+    # Create a socket
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket.bind(('0.0.0.0', port)) #listen on all interfaces
+    server_socket.listen(1)
+    server_socket.setblocking(False)
+
+    return server_socket
+    
+def handle_web_request(server_socket:socket.socket) -> None:
+    """
+    Handle one request if a client is waiting, then return
+
+    args:
+        server_socket (socket.socket): The server socket
+
+    returns:
+        None
+    """
+
+    try:
+        client, addr = server_socket.accept()
+        request = client.recv(1024).decode('utf-8')
+        
+        response = "HTTP/1.1 200 OK\r\n"
+        response += "Content-Type: text/html\r\n\r\n"
+        response += HTML
+        
+        client.send(response.encode('utf-8'))
+        client.close()
+        
+    except OSError:
+        pass  #no client waiting we just don't do anything
