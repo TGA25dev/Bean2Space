@@ -1,6 +1,13 @@
 import network
 import socket
 import time
+import sys
+if "/software" not in sys.path:
+    sys.path.append("/software")
+
+from modules.calibration import calibrate_sensors
+from software.utils.buzzer_manager import BuzzerManager
+buzzer = BuzzerManager(2) #pin 2
 
 SSID = "HRC-01"
 PASSWORD = "xiao1234"
@@ -74,11 +81,31 @@ HTML = """
 <body>
     <h1>HRC-01 Control Panel</h1>
     <button onclick="showAlert()">Click Me</button>
+    <button onclick="startCalibration()">Calibrate</button>
+    <button onclick="stopAP()">Stop AP</button>
+    <button onclick="buzzer()">Buzzer</button>
     
     <script>
         function showAlert() {
             alert("You cliked me!");
         }
+
+        function startCalibration() {
+            alert("Calibration started!");
+            fetch('/calibrate')
+                .then(response => console.log("Calibration request sent"));
+        }
+
+        function buzzer() {
+        fetch('/buzzer')
+            .then(response => console.log("Buzzer request sent"));    
+        }
+
+        function stopAP() {
+        fetch('/stop-ap')
+            .then(response => console.log("Stop AP request sent"));    
+        }
+
     </script>
 </body>
 </html>
@@ -116,6 +143,19 @@ def handle_web_request(server_socket:socket.socket) -> None:
     try:
         client, addr = server_socket.accept()
         request = client.recv(1024).decode('utf-8')
+
+        # Check what the browser is requesting
+        if "GET /calibrate" in request:
+            calibrate_sensors()  #calibration function from calibration.py
+
+        if "GET /stop-ap" in request:
+            print("I'll add that later..")
+
+        if "GET /buzzer" in request:
+            buzzer.on()
+            time.sleep(0.5)
+            buzzer.off()
+
         
         response = "HTTP/1.1 200 OK\r\n"
         response += "Content-Type: text/html\r\n\r\n"
