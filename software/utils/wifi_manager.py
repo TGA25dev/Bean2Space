@@ -35,6 +35,20 @@ def start_access_point() -> network.WLAN:
 
     return ap
 
+def stop_access_point(ap:network.WLAN) -> None:
+    """
+    Stops the Wifi access point
+    
+    args:
+        ap (network.WLAN): The access point object
+
+    returns:
+        None
+    """
+
+    ap.active(False)
+    print("Access point stopped!")
+
 def check_for_connections(ap:network.WLAN) -> bool:
     """
     Check for connected devices to the access point.
