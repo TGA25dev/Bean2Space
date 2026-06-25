@@ -38,6 +38,11 @@ def get_telemetry(imu_offsets:dict, ground_pressure:float) -> dict:
     absolute_pressure = bmp280.pressure #raw pressure from the sensor in Pa
     relative_pressure = absolute_pressure - ground_pressure #calculates pressure relative to launch pad ground level
 
+    if ground_pressure > 0:
+        altitude = 44330.0 * (1.0 - (absolute_pressure / ground_pressure) ** 0.1903) #calculates altitude based on the barometric formula, using the ground pressure as a reference
+    else:
+        altitude = 0.0
+
     imu_raw = imu.get_all_data()
 
     ax = (imu_raw['accel'][0] / 9.80665) - imu_offsets['ax'] #gravity is 9.80665 m/s ^2 , so we convert to g's for better readability
@@ -52,6 +57,7 @@ def get_telemetry(imu_offsets:dict, ground_pressure:float) -> dict:
         "temperature": temp,
         "absolute_pressure": absolute_pressure,
         "relative_pressure": relative_pressure,
+        "altitude": altitude,
         "accel_x": ax,
         "accel_y": ay,
         "accel_z": az,

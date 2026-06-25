@@ -53,6 +53,7 @@ def send_telemetry(sender:espnow.ESPNow, ground_station_mac:bytes, telemetry_dat
     temperature = telemetry_data.get("temperature", 0.0)
     absolute_pressure = telemetry_data.get("absolute_pressure", 0.0)
     relative_pressure = telemetry_data.get("relative_pressure", 0.0)
+    altitude = telemetry_data.get("altitude", 0.0)
     accel_x = telemetry_data.get("accel_x", 0.0)
     accel_y = telemetry_data.get("accel_y", 0.0)
     accel_z = telemetry_data.get("accel_z", 0.0)
@@ -62,7 +63,7 @@ def send_telemetry(sender:espnow.ESPNow, ground_station_mac:bytes, telemetry_dat
     temp_imu = telemetry_data.get("temp_imu", 0.0)
 
     
-    telemetry_string = f"{timestamp},{temperature:.2f},{absolute_pressure:.2f},{relative_pressure:.2f},{accel_x:.4f},{accel_y:.4f},{accel_z:.4f},{gyro_x:.4f},{gyro_y:.4f},{gyro_z:.4f},{temp_imu:.2f}"
+    telemetry_string = f"{timestamp},{temperature:.2f},{absolute_pressure:.2f},{relative_pressure:.2f},{altitude:.2f},{accel_x:.4f},{accel_y:.4f},{accel_z:.4f},{gyro_x:.4f},{gyro_y:.4f},{gyro_z:.4f},{temp_imu:.2f}"
     
     try:
         sender.send(ground_station_mac, telemetry_string, False) #False because no ACK (to avoid blocking the flight)

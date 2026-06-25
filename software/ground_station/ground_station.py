@@ -33,8 +33,8 @@ while True:
                 data_payload = raw_msg.decode('utf-8')
 
                 try:
-                    timestamp, temperature, absolute_pressure, relative_pressure, accel_x, accel_y, accel_z, gyro_x, gyro_y, gyro_z, temp_imu = data_payload.split(',') #classic telemetry mode
-                    print(f"Timestamp: {timestamp} | Temperature: {temperature}°C | Absolute Pressure: {absolute_pressure}Pa | Relative Pressure: {relative_pressure}Pa | Accel x: {accel_x} | Accel y: {accel_y}| Accel z: {accel_z} | Gyro x: {gyro_x} | Gyro y: {gyro_x} | Gyro z: {gyro_z} | IMU Temperature: {temp_imu}°C | Signal: {rssi}dBm")
+                    timestamp, temperature, absolute_pressure, relative_pressure, altitude, accel_x, accel_y, accel_z, gyro_x, gyro_y, gyro_z, temp_imu = data_payload.split(',') #classic telemetry mode
+                    print(f"Timestamp: {timestamp} | Temperature: {temperature}°C | Absolute Pressure: {absolute_pressure}Pa | Relative Pressure: {relative_pressure}Pa | Altitude {altitude}m |Accel x: {accel_x} | Accel y: {accel_y}| Accel z: {accel_z} | Gyro x: {gyro_x} | Gyro y: {gyro_x} | Gyro z: {gyro_z} | IMU Temperature: {temp_imu}°C | Signal: {rssi}dBm")
 
                 except ValueError:
                     print(f"Timestamp: {data_payload} | Signal: {rssi}dBm") #raw message mode
