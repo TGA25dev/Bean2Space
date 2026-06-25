@@ -17,7 +17,29 @@ esp_now_ready = False
 esp_now_should_start = False
 ap_should_stop = False
 ground_pressure = 0.0
-counter = 0
+
+timestamp = 0.0
+_last_tick = time.ticks_ms()
+
+def update_system_clock() -> None:
+    """
+    Updates the global timestamp variable based on the elapsed time since the last update
+
+    args:
+        None
+
+    returns:
+        None
+    """
+    global timestamp, _last_tick
+    
+    current_tick = time.ticks_ms()
+    
+    ms_passed = time.ticks_diff(current_tick, _last_tick)   #how many milliseconds passed since the last loop iteration
+    
+    timestamp += ms_passed / 1000.0 #converted to seconds
+
+    _last_tick = current_tick
 
 def power_up() -> None:
     """
@@ -30,7 +52,7 @@ def power_up() -> None:
         None
     """
 
-    global ground_station_mac, calibrated , esp_now_ready , counter
+    global ground_station_mac, calibrated ,esp_now_ready ,timestamp
     print("Powering up the system...")
 
     onboard_led.on()
@@ -108,7 +130,7 @@ def power_up() -> None:
 
         handle_web_request(server_socket) #handle webpanel requests
 
-        counter += 1
+        update_system_clock()
         time.sleep(0.05)
 
     if esp_now_should_start:
@@ -125,11 +147,11 @@ def power_up() -> None:
     while True:
         if esp_now_ready and calibrated:
             telemetry = get_telemetry(imu_offsets, ground_pressure)
-            #print(f"[{counter}] Flight Telemetry: {telemetry}")
+            #print(f"[{timestamp}] Flight Telemetry: {telemetry}")
 
-            send_telemetry(transmitter, ground_station_mac, telemetry, counter)
+            send_telemetry(transmitter, ground_station_mac, telemetry, timestamp)
 
-        counter += 1
+        update_system_clock()
         time.sleep(0.1) #10Hz
 
 power_up() #starts main sequence

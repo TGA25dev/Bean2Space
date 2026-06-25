@@ -35,7 +35,7 @@ def start_wireless_transmiter(ground_station_mac:bytes):
 
     return sender
 
-def send_telemetry(sender:espnow.ESPNow, ground_station_mac:bytes, telemetry_data:dict, packet_id:int) -> bool:
+def send_telemetry(sender:espnow.ESPNow, ground_station_mac:bytes, telemetry_data:dict, timestamp:float) -> bool:
     """
     Sends telemetry data to the ground station using ESPNow protocol
 
@@ -62,7 +62,7 @@ def send_telemetry(sender:espnow.ESPNow, ground_station_mac:bytes, telemetry_dat
     temp_imu = telemetry_data.get("temp_imu", 0.0)
 
     
-    telemetry_string = f"{packet_id},{temperature:.2f},{absolute_pressure:.2f},{relative_pressure:.2f},{accel_x:.4f},{accel_y:.4f},{accel_z:.4f},{gyro_x:.4f},{gyro_y:.4f},{gyro_z:.4f},{temp_imu:.2f}"
+    telemetry_string = f"{timestamp},{temperature:.2f},{absolute_pressure:.2f},{relative_pressure:.2f},{accel_x:.4f},{accel_y:.4f},{accel_z:.4f},{gyro_x:.4f},{gyro_y:.4f},{gyro_z:.4f},{temp_imu:.2f}"
     
     try:
         sender.send(ground_station_mac, telemetry_string, False) #False because no ACK (to avoid blocking the flight)
