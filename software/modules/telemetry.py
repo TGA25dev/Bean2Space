@@ -21,12 +21,13 @@ imu.set_accel_range(imu.AccelRange.RANGE_16_G) #set to 16G
 imu.set_filter_bandwidth(imu.FilterBandwidth.BAND_21_HZ) #Filters out high frequency (motor vibrations)
 imu.set_gyro_range(imu.GyroRange.RANGE_2000_DEG) # set to 2000 deg/s for better resolution during probable spins
 
-def get_telemetry(imu_offsets:dict) -> dict:
+def get_telemetry(imu_offsets:dict, ground_pressure:float) -> dict:
     """
     Reads all sensors and applies calibration offsets
 
     args:
         imu_offsets (dict): A dictionary containing calibration offsets for accelerometer and gyroscope
+        ground_pressure (float): The ground pressure value obtained during calibration (fixed reference value)
 
     returns:
         telemetry (dict): A dictionary containing the current telemetry data from the sensors
@@ -39,9 +40,9 @@ def get_telemetry(imu_offsets:dict) -> dict:
 
     imu_raw = imu.get_all_data()
 
-    ax = (imu_raw['accel'][0] / 9.80665) + imu_offsets['ax'] #gravity is 9.80665 m/s ^2 , so we convert to g's for better readability
-    ay = (imu_raw['accel'][1] / 9.80665) + imu_offsets['ay']
-    az = (imu_raw['accel'][2] / 9.80665) + imu_offsets['az']
+    ax = (imu_raw['accel'][0] / 9.80665) - imu_offsets['ax'] #gravity is 9.80665 m/s ^2 , so we convert to g's for better readability
+    ay = (imu_raw['accel'][1] / 9.80665) - imu_offsets['ay']
+    az = (imu_raw['accel'][2] / 9.80665) - imu_offsets['az']
     
     gx = imu_raw['gyro'][0] - imu_offsets['gx'] #substracts the offsets found during calibration
     gy = imu_raw['gyro'][1] - imu_offsets['gy']
@@ -59,6 +60,5 @@ def get_telemetry(imu_offsets:dict) -> dict:
         "gyro_z": gz,
         "temp_imu": imu_raw['temp']
     }
-
 
     return telemetry

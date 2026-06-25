@@ -31,7 +31,7 @@ imu_offsets = { #default offset values for calibration
     "gz": 0.0
 }
 
-def calibrate_sensors() -> dict:
+def calibrate_sensors() -> tuple:
     """
     Perfoms sensors calibrations
 
@@ -84,9 +84,9 @@ def calibrate_sensors() -> dict:
     global imu_offsets
 
     imu_offsets = {
-        "ay": 1.0 - (sum(acc_y_readings) / 50), #divided by 50 to get the average
-        "ax": 0.0 - (sum(acc_x_readings) / 50),
-        "az": 0.0 - (sum(acc_z_readings) / 50),
+        "ax": sum(acc_x_readings) / 50,
+        "ay": (sum(acc_y_readings) / 50) - 1.0, #subtracts 1g from the y axis to account for gravity
+        "az": sum(acc_z_readings) / 50,
         "gx": sum(gyro_x_readings) / 50,
         "gy": sum(gyro_y_readings) / 50,
         "gz": sum(gyro_z_readings) / 50
@@ -101,4 +101,4 @@ def calibrate_sensors() -> dict:
     buzzer.off()
     onboard_led.off()
 
-    return imu_offsets
+    return ground_pressure, imu_offsets
