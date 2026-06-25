@@ -6,9 +6,18 @@ buzzer = BuzzerManager(2) #pin 2
 from software.utils.led_manager import LEDManager
 onboard_led = LEDManager(1) #LED on pin 1
 
-from software.utils.wifi_manager import start_access_point, check_for_connections, setup_web_server, handle_web_request
+from software.utils.wifi_manager import start_access_point, check_for_connections, setup_web_server, handle_web_request, stop_access_point
 from software.modules.calibration import calibrate_sensors
 from software.modules.telemetry import get_telemetry
+from software.modules.esp_now import send_telemetry, send_message, start_wireless_transmiter
+
+ground_station_mac = b'X\x8c\x81\xae\x16\xb0'
+calibrated = False
+esp_now_ready = False
+esp_now_should_start = False
+ap_should_stop = False
+ground_pressure = 0.0
+counter = 0
 
 def power_up() -> None:
     """
@@ -21,6 +30,7 @@ def power_up() -> None:
         None
     """
 
+    global ground_station_mac, calibrated , esp_now_ready , counter
     print("Powering up the system...")
 
     onboard_led.on()
@@ -74,22 +84,52 @@ def power_up() -> None:
 
     print("System is fully operational! Starting main loop...")
 
-    calibrated = False
-    while True:  #Main loop
-
-        if not calibrated:
+    while True:
+        if not calibrated: #calibrate if not done yet
             time.sleep(1.5)
-            imu_offsets = calibrate_sensors()
+            ground_pressure, imu_offsets = calibrate_sensors()
             calibrated = True
             print("Calibration complete! System Armed.")
         
-        if calibrated: #only get telemetry after calibration is done to avoid wrong readings
-            telemetry = get_telemetry(imu_offsets) #get telemetry from sensors (calibration offsets applied)
+        if ap_should_stop or esp_now_should_start: #check if state change was requested by the web panel
+            time.sleep(0.1)
+            
+            try:
+                server_socket.close() #close webserver first
+            except:
+                pass
+                
+            stop_access_point(wifi_access_point)
+            break  #stop server
 
-            #send telemetry somewhere and do stuff with it here
-        
-        handle_web_request(server_socket)  # Handle one request (non blocking for other taks)
+        if calibrated:
+            telemetry = get_telemetry(imu_offsets, ground_pressure)
+            #print(telemetry)
 
-        time.sleep(0.1)
+        handle_web_request(server_socket) #handle webpanel requests
+
+        counter += 1
+        time.sleep(0.05)
+
+    if esp_now_should_start:
+        print("Starting ESPNOW transmitter...")
+        transmitter = start_wireless_transmiter(ground_station_mac)
+        esp_now_ready = True
+
+        print("Entering Flight Mode... Telemetry will be sent to the ground station")
+
+    else:
+        print("System entered passive holding mode. Standing by...")
+
+
+    while True:
+        if esp_now_ready and calibrated:
+            telemetry = get_telemetry(imu_offsets, ground_pressure)
+            #print(f"[{counter}] Flight Telemetry: {telemetry}")
+
+            send_telemetry(transmitter, ground_station_mac, telemetry, counter)
+
+        counter += 1
+        time.sleep(0.1) #10Hz
 
 power_up() #starts main sequence

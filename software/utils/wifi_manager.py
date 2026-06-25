@@ -6,8 +6,12 @@ if "/software" not in sys.path:
     sys.path.append("/software")
 
 from modules.calibration import calibrate_sensors
+from modules.esp_now import start_wireless_transmiter
+
 from software.utils.buzzer_manager import BuzzerManager
 buzzer = BuzzerManager(2) #pin 2
+
+import __main__ #type: ignore
 
 SSID = "HRC-01"
 PASSWORD = "xiao1234"
@@ -83,6 +87,7 @@ HTML = """
     <button onclick="showAlert()">Click Me</button>
     <button onclick="startCalibration()">Calibrate</button>
     <button onclick="stopAP()">Stop AP</button>
+    <button onclick="startESPNow()">Start ESP Now</button>
     <button onclick="buzzer()">Buzzer</button>
     
     <script>
@@ -102,8 +107,15 @@ HTML = """
         }
 
         function stopAP() {
+        alert("AP stopped (you will be disconnected from the Wi-Fi)");
         fetch('/stop-ap')
             .then(response => console.log("Stop AP request sent"));    
+        }
+
+        function startESPNow() {
+        alert("ESP Now started (you will be disconnected from the Wi-Fi and the device will start sending telemetry to the ground station)");
+        fetch('/start-esp-now')
+            .then(response => console.log("Start ESP Now request sent"));    
         }
 
     </script>
@@ -149,12 +161,16 @@ def handle_web_request(server_socket:socket.socket) -> None:
             calibrate_sensors()  #calibration function from calibration.py
 
         if "GET /stop-ap" in request:
-            print("I'll add that later..")
+            __main__.ap_should_stop = True
 
         if "GET /buzzer" in request:
             buzzer.on()
             time.sleep(0.5)
             buzzer.off()
+
+        if "GET /start-esp-now" in request:
+            __main__.ap_should_stop = True
+            __main__.esp_now_should_start = True
 
         
         response = "HTTP/1.1 200 OK\r\n"

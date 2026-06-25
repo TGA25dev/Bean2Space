@@ -21,19 +21,27 @@ def start_wireless_transmiter(ground_station_mac:bytes):
     sender = espnow.ESPNow()
     sender.active(True)
 
-    sender.add_peer(ground_station_mac) #add it as peer
+    try:
+        sender.add_peer(ground_station_mac) #add it as peer
+        print("Peer added successfully.")
+
+    except OSError as e:
+        if e.args[0] == -12395 or "ESP_ERR_ESPNOW_EXIST" in str(e):
+            print("Peer already exists, skipping...")
+        else:
+            raise e # Raise other OSErrors
 
     print("Wireless transmiter is ready !")
 
     return sender
 
-def send_telemetry(sender:espnow.ESPNow, c3_ground_mac:bytes, telemetry_data:dict, packet_id:int):
+def send_telemetry(sender:espnow.ESPNow, ground_station_mac:bytes, telemetry_data:dict, packet_id:int) -> bool:
     """
     Sends telemetry data to the ground station using ESPNow protocol
 
     args:
         sender (espnow.ESPNow): ESPNow sender object
-        c3_ground_mac (bytes): MAC address of the ground station to send data to
+        ground_station_mac (bytes): MAC address of the ground station to send data to
         telemetry_data (dict): Dictionary containing telemetry data (altitude, velocity)
         packet_id (int): Packet ID for the telemetry data
     
@@ -41,16 +49,49 @@ def send_telemetry(sender:espnow.ESPNow, c3_ground_mac:bytes, telemetry_data:dic
         tuple: (bool) ndicates if the packet was sent successfully
     
     """
-    altitude = telemetry_data.get("altitude", 0.0) #NEEDS TO BE ADAPTED LATER TO THE REAL TELEMETRY DATA STRUCTURE
-    velocity = telemetry_data.get("velocity", 0.0)
-    telemetry_string = f"{packet_id},{altitude:.2f},{velocity:.1f}"
+    
+    temperature = telemetry_data.get("temperature", 0.0)
+    absolute_pressure = telemetry_data.get("absolute_pressure", 0.0)
+    relative_pressure = telemetry_data.get("relative_pressure", 0.0)
+    accel_x = telemetry_data.get("accel_x", 0.0)
+    accel_y = telemetry_data.get("accel_y", 0.0)
+    accel_z = telemetry_data.get("accel_z", 0.0)
+    gyro_x = telemetry_data.get("gyro_x", 0.0)
+    gyro_y = telemetry_data.get("gyro_y", 0.0)
+    gyro_z = telemetry_data.get("gyro_z", 0.0)
+    temp_imu = telemetry_data.get("temp_imu", 0.0)
+
+    
+    telemetry_string = f"{packet_id},{temperature:.2f},{absolute_pressure:.2f},{relative_pressure:.2f},{accel_x:.4f},{accel_y:.4f},{accel_z:.4f},{gyro_x:.4f},{gyro_y:.4f},{gyro_z:.4f},{temp_imu:.2f}"
     
     try:
-        sender.send(c3_ground_mac, telemetry_string, False) #False because no ACK (to avoid blocking the flight)
+        sender.send(ground_station_mac, telemetry_string, False) #False because no ACK (to avoid blocking the flight)
         return True
 
-    except OSError:
-        print("Error sending telemetry data")
+    except OSError as e:
+        print("Error sending telemetry data: ", e)
+        return False
+
+
+def send_message(sender:espnow.ESPNow, ground_station_mac:bytes, message:str) -> bool:
+    """
+    Sends a message to the ground station using ESPNow protocol
+    
+    args:
+        sender (espnow.ESPNow): ESPNow sender object
+        ground_station_mac (bytes): MAC address of the ground station to send data to
+        message (str): Message string to be sent
+        
+    returns:
+        bool: Indicates if the message was sent successfully
+    """
+
+    try: 
+        sender.send(ground_station_mac, message, False) #False because no ACK (to avoid blocking the flight)
+        return True
+    
+    except OSError as e:
+        print("Error sending message:", e)
         return False
 
 c3_ground_mac = b'X\x8c\x81\xae\x16\xb0' #Ground Stations's MAC address
