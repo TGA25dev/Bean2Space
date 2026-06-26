@@ -53,7 +53,7 @@ def calibrate_sensors() -> tuple:
         time.sleep(0.05)
     
     time.sleep(5) #pause to let the rocket in place and stable
-    print("Sampling calibration data please wait...")
+    print("Sampling calibration data...")
 
     press_readings = []
     acc_y_readings = []
