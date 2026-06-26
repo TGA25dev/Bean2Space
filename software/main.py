@@ -1,4 +1,5 @@
 import time
+import random
 
 from software.utils.buzzer_manager import BuzzerManager
 buzzer = BuzzerManager(2) #pin 2
@@ -151,9 +152,10 @@ def power_up() -> None:
             telemetry = get_telemetry(imu_offsets, ground_pressure)
             #print(f"[{timestamp}] Flight Telemetry: {telemetry}")
 
-            send_telemetry(transmitter, ground_station_mac, telemetry, timestamp)
+            send_telemetry(transmitter, ground_station_mac, telemetry, timestamp, flight_id)
+            #send_message(transmitter, ground_station_mac, "Hello World!", timestamp, flight_id)
 
         update_system_clock()
-        time.sleep(0.1) #10Hz
+        time.sleep(0.1) #10Hz sampling rate 
 
 power_up() #starts main sequence

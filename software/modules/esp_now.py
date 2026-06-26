@@ -35,7 +35,7 @@ def start_wireless_transmiter(ground_station_mac:bytes):
 
     return sender
 
-def send_telemetry(sender:espnow.ESPNow, ground_station_mac:bytes, telemetry_data:dict, timestamp:float) -> bool:
+def send_telemetry(sender:espnow.ESPNow, ground_station_mac:bytes, telemetry_data:dict, timestamp:float, flight_id:int) -> bool:
     """
     Sends telemetry data to the ground station using ESPNow protocol
 
@@ -43,7 +43,8 @@ def send_telemetry(sender:espnow.ESPNow, ground_station_mac:bytes, telemetry_dat
         sender (espnow.ESPNow): ESPNow sender object
         ground_station_mac (bytes): MAC address of the ground station to send data to
         telemetry_data (dict): Dictionary containing telemetry data (altitude, velocity)
-        packet_id (int): Packet ID for the telemetry data
+        timestamp (float): Current timestamp to be sent with the telemetry data
+        flight_id (int): Unique flight identifier to be sent with the telemetry data
     
     returns:
         tuple: (bool) ndicates if the packet was sent successfully
@@ -62,8 +63,9 @@ def send_telemetry(sender:espnow.ESPNow, ground_station_mac:bytes, telemetry_dat
     gyro_z = telemetry_data.get("gyro_z", 0.0)
     temp_imu = telemetry_data.get("temp_imu", 0.0)
 
+    packet_type = "telemetry"
     
-    telemetry_string = f"{timestamp},{temperature:.2f},{absolute_pressure:.2f},{relative_pressure:.2f},{altitude:.2f},{accel_x:.4f},{accel_y:.4f},{accel_z:.4f},{gyro_x:.4f},{gyro_y:.4f},{gyro_z:.4f},{temp_imu:.2f}"
+    telemetry_string = f"{timestamp},{packet_type},{flight_id},{temperature:.2f},{absolute_pressure:.2f},{relative_pressure:.2f},{altitude:.2f},{accel_x:.4f},{accel_y:.4f},{accel_z:.4f},{gyro_x:.4f},{gyro_y:.4f},{gyro_z:.4f},{temp_imu:.2f}"
     
     try:
         sender.send(ground_station_mac, telemetry_string, False) #False because no ACK (to avoid blocking the flight)
@@ -74,7 +76,7 @@ def send_telemetry(sender:espnow.ESPNow, ground_station_mac:bytes, telemetry_dat
         return False
 
 
-def send_message(sender:espnow.ESPNow, ground_station_mac:bytes, message:str) -> bool:
+def send_message(sender:espnow.ESPNow, ground_station_mac:bytes, message:str, timestamp:float, flight_id:int) -> bool:
     """
     Sends a message to the ground station using ESPNow protocol
     
@@ -82,13 +84,18 @@ def send_message(sender:espnow.ESPNow, ground_station_mac:bytes, message:str) ->
         sender (espnow.ESPNow): ESPNow sender object
         ground_station_mac (bytes): MAC address of the ground station to send data to
         message (str): Message string to be sent
+        timestamp (float): Current timestamp to be sent with the message
+        flight_id (int): Unique flight identifier to be sent with the message
         
     returns:
         bool: Indicates if the message was sent successfully
     """
 
+    packet_type = "message"
+    message_string = f"{timestamp},{packet_type},{flight_id},{message}"
+
     try: 
-        sender.send(ground_station_mac, message, False) #False because no ACK (to avoid blocking the flight)
+        sender.send(ground_station_mac, message_string, False) #False because no ACK (to avoid blocking the flight)
         return True
     
     except OSError as e:
