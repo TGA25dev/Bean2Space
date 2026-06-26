@@ -1,5 +1,6 @@
 import time
 import random
+import machine
 
 from software.utils.buzzer_manager import BuzzerManager
 buzzer = BuzzerManager(2) #pin 2
@@ -11,6 +12,8 @@ from software.utils.wifi_manager import start_access_point, check_for_connection
 from software.modules.calibration import calibrate_sensors
 from software.modules.telemetry import get_telemetry
 from software.modules.esp_now import send_telemetry, send_message, start_wireless_transmiter
+
+machine.freq(160000000)
 
 ground_station_mac = b'X\x8c\x81\xae\x16\xb0'
 calibrated = False
