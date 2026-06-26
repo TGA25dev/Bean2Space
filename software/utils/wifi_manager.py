@@ -135,7 +135,32 @@ def setup_web_server(port=PORT) -> socket.socket:
     """
     # Create a socket
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket.bind(('0.0.0.0', port)) #listen on all interfaces
+    server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    
+    try:
+        server_socket.bind(('0.0.0.0', port))
+
+    except OSError as e:
+        if e.errno == 112: #EADDRINUSE
+            print("Port 80 busy Resetting network interface to clear sockets...")
+            
+            server_socket.close() #close socket 
+            
+            #force cycle the interface to tear down zombie connections
+            ap = network.WLAN(network.AP_IF)
+            ap.active(False)
+            time.sleep_ms(500)
+            ap.active(True)
+            while not ap.active():
+                time.sleep_ms(50)
+                
+            # recreate socket and attempt binding again
+            server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            server_socket.bind(('0.0.0.0', port))
+        else:
+            raise e
+            
     server_socket.listen(1)
     server_socket.setblocking(False)
 
