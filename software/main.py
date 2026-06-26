@@ -21,6 +21,8 @@ ground_pressure = 0.0
 timestamp = 0.0
 _last_tick = time.ticks_ms()
 
+flight_id = random.randint(1000, 9999)
+
 def update_system_clock() -> None:
     """
     Updates the global timestamp variable based on the elapsed time since the last update
@@ -52,8 +54,8 @@ def power_up() -> None:
         None
     """
 
-    global ground_station_mac, calibrated ,esp_now_ready ,timestamp
-    print("Powering up the system...")
+    global ground_station_mac, calibrated ,esp_now_ready ,timestamp, flight_id
+    print(f"Powering up the system... (ID: {flight_id})")
 
     onboard_led.on()
     buzzer.on()
