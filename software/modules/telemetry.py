@@ -21,13 +21,17 @@ imu.set_accel_range(imu.AccelRange.RANGE_16_G) #set to 16G
 imu.set_filter_bandwidth(imu.FilterBandwidth.BAND_21_HZ) #Filters out high frequency (motor vibrations)
 imu.set_gyro_range(imu.GyroRange.RANGE_2000_DEG) # set to 2000 deg/s for better resolution during probable spins
 
-def get_telemetry(imu_offsets:dict, ground_pressure:float) -> dict:
+demo_alt = 0.0
+demo_alt_counter = 0
+
+def get_telemetry(imu_offsets:dict, ground_pressure:float, demo:bool=False) -> dict:
     """
     Reads all sensors and applies calibration offsets
 
     args:
         imu_offsets (dict): A dictionary containing calibration offsets for accelerometer and gyroscope
         ground_pressure (float): The ground pressure value obtained during calibration (fixed reference value)
+        demo (bool): If True simulates altitude data for testing purposes
 
     returns:
         telemetry (dict): A dictionary containing the current telemetry data from the sensors
@@ -42,6 +46,13 @@ def get_telemetry(imu_offsets:dict, ground_pressure:float) -> dict:
         altitude = 44330.0 * (1.0 - (absolute_pressure / ground_pressure) ** 0.1903) #calculates altitude based on the barometric formula, using the ground pressure as a reference
     else:
         altitude = 0.0
+
+    if demo:
+        global demo_alt, demo_alt_counter
+        demo_alt_counter += 1
+        if demo_alt_counter % 10 == 0: #increments demo alt every 10 calls
+            demo_alt += 1.0
+        altitude = demo_alt
 
     imu_raw = imu.get_all_data()
 
