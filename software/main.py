@@ -21,6 +21,7 @@ esp_now_ready = False
 esp_now_should_start = False
 ap_should_stop = False
 telemetry = None
+transmitter = None
 
 timestamp = 0.0
 _last_tick = time.ticks_ms()
@@ -39,6 +40,32 @@ launch_counter = 0
 apogee_counter = 0
 descent_counter = 0
 landed_counter = 0
+
+def send_live_log(text, level="INFO"):
+    """
+    Sends a live log message to the ground station using the ESPNow protocol
+    
+    args:
+        sender (espnow.ESPNow): ESPNow sender object
+        text (str): the log message to be sent
+        level (str): the log level (INFO, WARNING, ERROR)
+
+    returns:
+        bool: Indicates if the log message was sent successfully or not
+    """
+
+    global timestamp, flight_id, ground_station_mac, esp_now_ready, transmitter
+
+    #print(esp_now_ready, transmitter)
+
+    if not esp_now_ready or transmitter is None:
+        print("ESPNow is not ready! Cannot send log message")
+        return False
+
+    message = f"[{level}]:{text}"
+    sent_msg = send_message(transmitter, ground_station_mac, message, timestamp, flight_id)
+
+    return sent_msg
 
 def update_system_clock() -> None:
     """
@@ -101,6 +128,7 @@ def check_rocket_state(altitude: float) -> None:
         landed_counter = 0
 
         print("Rocket is now ARMED! Ready for launch")
+        send_live_log("Rocket is now ARMED! Ready for launch", level="INFO")
 
     elif rocket_state == "armed":
         if filtered_altitude > 2.0: #alt exceeds 2 meters
@@ -113,6 +141,7 @@ def check_rocket_state(altitude: float) -> None:
                 descent_counter = 0
                 landed_counter = 0
                 print("LAUNCH DETECTED! Rocket is in FLIGHT mode!")
+                send_live_log("LAUNCH DETECTED! Rocket is in FLIGHT mode!", level="INFO")
         else:
             launch_counter = 0
 
@@ -127,6 +156,7 @@ def check_rocket_state(altitude: float) -> None:
                 descent_counter = 0
                 landed_counter = 0
                 print(f"APOGEE DETECTED! Peak Altitude: {max_altitude:.2f}m")
+                send_live_log(f"APOGEE DETECTED! Peak Altitude: {max_altitude:.2f}m", level="INFO")
         else:
             apogee_counter = 0 #reset counter
 
@@ -134,6 +164,7 @@ def check_rocket_state(altitude: float) -> None:
         rocket_state = "descent"
         descent_counter = 0
         print("Transitioning to DESCENT mode")
+        send_live_log("Transitioning to DESCENT mode", level="INFO")
 
     elif rocket_state == "descent":
         if velocity < -1.0: #negative velocity (descending) and faster than 1 m/s
@@ -147,6 +178,7 @@ def check_rocket_state(altitude: float) -> None:
             if landed_counter >= 20: #stable for 20 readings (~2 seconds at 10Hz)
                 rocket_state = "landed"
                 print("TOUCHDOWN has been detected!")
+                send_live_log("TOUCHDOWN has been detected!", level="INFO")
         else:
             landed_counter = 0
 
@@ -165,7 +197,7 @@ def power_up() -> None:
         None
     """
 
-    global ground_station_mac, calibrated ,esp_now_ready ,timestamp, flight_id
+    global ground_station_mac, calibrated ,esp_now_ready ,timestamp, flight_id, transmitter
     print(f"Powering up the system... (ID: {flight_id})")
 
     onboard_led.on()
@@ -261,7 +293,7 @@ def power_up() -> None:
     while True:
         if esp_now_ready and calibrated:
             
-            telemetry = get_telemetry(imu_offsets, ground_pressure, demo=False)
+            telemetry = get_telemetry(imu_offsets, ground_pressure, demo=True)
             check_rocket_state(telemetry["altitude"])
 
             #DEBUG
@@ -270,7 +302,6 @@ def power_up() -> None:
             #END DEBUG
 
             send_telemetry(transmitter, ground_station_mac, telemetry, timestamp, flight_id)
-            #send_message(transmitter, ground_station_mac, "Hello World!", timestamp, flight_id)
 
         update_system_clock()
         time.sleep(0.1) #10Hz sampling rate 
