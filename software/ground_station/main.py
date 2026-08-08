@@ -3,6 +3,12 @@ import network
 import wifi
 import time
 
+time.sleep(3)
+
+print("\n" + "="*40)
+print("SYSTEM BOOT: trigger station started!")
+print("="*40 + "\n")
+
 wifi.reset(sta=True, ap=False, channel=6) #start wifi in station mode (channel 6) and disable AP mode
 
 wlan = network.WLAN(network.STA_IF)
