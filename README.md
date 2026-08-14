@@ -1,5 +1,5 @@
 # Bean2Space 🚀
-> The HRC-01: the first rocket of the Bean2Space program. A 3D printed DIY rocket powered by an ESP32-S3 flight computer running MicroPython featuring telemetry logging, a ground station and a trigger system.<br><br>
+> HRC-01: the first rocket of the Bean2Space program. A 3D printed DIY rocket powered by an ESP32-S3 flight computer running MicroPython. Featuring telemetry logging, a ground station and a trigger system.<br><br>
 Also my submission to the [Stardance Challenge](https://stardance.hackclub.com/)!
 
 ![Banner](assets/full_rocket_render.png)
@@ -16,57 +16,57 @@ This project is basically made of three main components:
 
 - **Nose cone + bottom closure:**<br>
 The nose cone has a hole on the bottom to add extra weight if ever needed. The bottom closure part closes the hole and is sealed using tape.
-<br>
-[Download nose_cone.step](cad/rocket/nose_cone.step)
-![nose_cone_file](assets/nose_cone_render.png)
+
+   [Download nose_cone.step](cad/rocket/nose_cone.step)
+   ![nose_cone_file](assets/nose_cone_render.png)
 
 ---
 
 - **Main Stage**:<br>
 The main stage has two pods on both sides to add a small camera (SQ11 size), M3 screw holes to attach the inner rack (see below) with guide rails inside, 3 static port holes and finally an alignment hole to properly align main and engine stage.
-<br>
-[Download main_stage.step](cad/rocket/main_stage.step)
-![main_stage_file](assets/main_stage_render.png)
+
+   [Download main_stage.step](cad/rocket/main_stage.step)
+   ![main_stage_file](assets/main_stage_render.png)
 
 ---
 
 - **Instruments Rack**:<br> 
 The rack is slid in the stage's guide rails and secured with 4 M3 screws on the sides using inserts. The board is placed on one side and also secured with M3 screws while on the other side is the battery slot secured with velcro. On top there's a small handle to easily pull off the rack from the rocket.
-<br>
-[Download instruments_rack.step](cad/rocket/instruments_rack.step)
-![instruments_rack_file](assets/instruments_rack_render.png)
+
+   [Download instruments_rack.step](cad/rocket/instruments_rack.step)
+   ![instruments_rack_file](assets/instruments_rack_render.png)
 
 ---
 
 - **Shock Cord Mount**:<br>
 Two of those mounts are placed on the bottom of the main stage shoulder and glued with epoxy. A long screw is slid between both holes with a nut at the end. Finally the shock cord is tied to the screw.
-<br>
-[Download shock_cord_mount.step](cad/rocket/shock_cord_mount.step)
-![shock_cord_mount_file](assets/shock_cord_mount_render.png)
+
+   [Download shock_cord_mount.step](cad/rocket/shock_cord_mount.step)
+   ![shock_cord_mount_file](assets/shock_cord_mount_render.png)
 
 ---
 
 - **Engine Stage**:<br>
 The engine is slid in the 18mm hole on the bottom. The stage has two 6mm diameter launch lugs where you can slide the launch rod. On the bottom in the inside of the tube 4 holes allow you to tie the shock cord.
-<br>
-[Download engine_stage.step](cad/rocket/engine_stage.step)
-![engine_stage__file](assets/engine_stage_render.png)
+
+   [Download engine_stage.step](cad/rocket/engine_stage.step)
+   ![engine_stage__file](assets/engine_stage_render.png)
 
 ---
 
 - **Trigger Box Cover**:<br>
 Here there are 3 holes, one for an led, another for the security key and a third one for the launch button.
-<br>
-[Download trigger_box_cover.step](cad/trigger_station/trigger_box_cover.step)
-![trigger_box_cover](assets/trigger_box_cover_render.png)
+
+   [Download trigger_box_cover.step](cad/trigger_station/trigger_box_cover.step)
+   ![trigger_box_cover](assets/trigger_box_cover_render.png)
 
 ---
 
 - **Trigger Box Body**:<br>
 The box has a support to add velcro to it and put the two battery holders. It also has a hole to fit the ignition cable through it.
-<br>
-[Download trigger_box_body.step](cad/trigger_station/trigger_box_body.step)
-![trigger_box_body](assets/trigger_box_body_render.png)
+
+   [Download trigger_box_body.step](cad/trigger_station/trigger_box_body.step)
+   ![trigger_box_body](assets/trigger_box_body_render.png)
 
 ### Wiring diagrams
 
