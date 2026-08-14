@@ -1,14 +1,14 @@
 Item Name,Qty,Price (total) (USD),Price (total) (EUR),Item link,Notes
 BMP280,1,$5.18,€4.50,https://www.gotronic.fr/art-module-bmp280-ky052-29155.htm,BOUGHT - Module for measuring temperature and pressure in the rocket
 Buzzer,1,$1.61,€1.40,https://www.gotronic.fr/art-buzzer-sv1407-21014.htm,BOUGHT - A classic buzzer
-Green LED Pack (pack of 5),5,$0.81,€0.70,https://www.gotronic.fr/art-leds-vertes-led5gl-360.htm,BOUGHT - LED's
+Green LED Pack (pack of 10),1,$0.81,€0.70,https://www.gotronic.fr/art-leds-vertes-led5gl-360.htm,BOUGHT - LED's
 XIAO ESP32-S3,1,$9.90,€8.60,https://www.gotronic.fr/art-carte-xiao-esp32s3-36954.htm,BOUGHT - Main microcontroller for the rocket
 MPU6050,1,$6.67,€5.80,https://www.gotronic.fr/art-module-6-dof-sen-mpu6050-31492.htm,BOUGHT - Accelerometer and gyro
-220 Resistor,1,$0.12,€0.10,https://www.gotronic.fr/art-resistance-carbone-1w-220-8486-2741.htm,BOUGHT
+220 ohm Resistor,1,$0.12,€0.10,https://www.gotronic.fr/art-resistance-carbone-1w-220-8486-2741.htm,BOUGHT
 microSD Module,1,$8.49,€7.38,https://www.gotronic.fr/art-module-carte-micro-sd-dev-13743-24810.htm,NEEDED - To store data direcly on the rocket so I have multiple backcups (on rocket and on laptop connected to the ground station)
 Accu LiPo 3.7 Vcc 550 mAh Battery,2,$16.11,€14.0,https://www.gotronic.fr/art-accu-lipo-3-7-vcc-550-mah-l503040-31712.htm,NEEDED - One to power the rocket and another for backup
 XIAO ESP32-C3,1,$6.79,€5.90,https://www.gotronic.fr/art-carte-xiao-esp32c3-35643.htm,BOUGHT - Microcontroller for the ground station in charge of receiving telemetry data
-BCS050 soldering board 50x100,1,$1.38,€1.20,https://www.gotronic.fr/art-plaque-d-essais-bcs050-6931.htm,NEEDED - To solder the components of the flight computer
+50x100 BCS050 soldering board,1,$1.38,€1.20,https://www.gotronic.fr/art-plaque-d-essais-bcs050-6931.htm,NEEDED - To solder the components of the flight computer
 JST SYP to JSTSYP2P adapter,1,$0.40,€0.35,https://www.gotronic.fr/art-conn--jst-syp-2p-lipo-47807.htm,NEEDED - To connect the battery to the microcontroller in the rocket
 AA Battery Holder,2,$6.22,€5.4,https://www.gotronic.fr/art-coupleur-4-piles-lr6-aa-bf4xaa-31559.htm,NEEDED - To power the trigger station and ignite the rocket engine
 HP CC075RN Cable (per 1 meter),12,$8.29,€7.2,https://www.gotronic.fr/art-cable-hp-cc075rn-5087.htm,NEEDED - To connect the trigger station to the rocket engine (12meters so we can be far away when it ignites) 
@@ -16,12 +16,12 @@ Black Crocodile Clip,1,$0.40,€0.35,https://www.gotronic.fr/art-pince-crocodile
 Red Crocodile Clip,1,$0.40,€0.35,https://www.gotronic.fr/art-pince-crocodile-rk01r-4697.htm,NEEDED - Same as above
 Security Key Switch,1,$6.35,€5.50,https://www.gotronic.fr/art-inter-a-cle-2-positions-40374.htm,NEEDED - A security key switch to turn on the trigger station and prevent accidental ignition
 Red Trigger Button,1,$9.80,€8.5,https://www.gotronic.fr/art-bp-affleurant-lumineux-40376.htm,NEEDED - To trigger the rocket engine ignition (led won't work but I'v chose this one because it has the same diameter as the key switch and I don't have to solder anything)
-1/2W 1k Resistor (pack of 5),5,$0.35,€0.30,https://www.gotronic.fr/art-5-resistances-1-2w-1-0-k-8486-2659.htm,NEEDED - To limit the current in the trigger station
-Klima D9-5 Rocket Engine (pack of 6),6,$40.86,€35.50,https://www.sierrafoxhobbies.com/fr/1394-moteurs-klima-d9-5.html,NEEDED - Well thats the rocket engines..
+1/2W 1k Resistor (pack of 5),1,$0.35,€0.30,https://www.gotronic.fr/art-5-resistances-1-2w-1-0-k-8486-2659.htm,NEEDED - To limit the current in the trigger station
+Klima D9-5 Rocket Engine (pack of 6),1,$40.86,€35.50,https://www.sierrafoxhobbies.com/fr/1394-moteurs-klima-d9-5.html,NEEDED - Well thats the rocket engines..
 Kevlar Cord (per 1 meter),2,$3.45,€3.0,https://www.sierrafoxhobbies.com/fr/2375-cordon-kevlar-2-mm.html,NEEDED - Shock cord to connect the rocket tubes to the parachute
-Nomex Parachute protector 22x22cm,1,$12.08,€10.50,https://www.sierrafoxhobbies.com/fr/1956-nomex-22x22-protecteur-de-parachute.html,NEEDED - To protect the parachute from the rocket engine heat (parachute will be put inside that)
+22x22cm Nomex Parachute protector,1,$12.08,€10.50,https://www.sierrafoxhobbies.com/fr/1956-nomex-22x22-protecteur-de-parachute.html,NEEDED - To protect the parachute from the rocket engine heat (parachute will be put inside that)
 Launch Pad Kit,1,$30.57,€26.50,https://www.sierrafoxhobbies.com/fr/1535-rampe-de-lancement-klima.html,NEEDED - This is a launchpad kit I initially thought I could make it myself but I think it will be safer and easier to but it already made; it includes a launchpad and a deflector plate to protect the ground from the rocket's engine heat
 Launch Rod,1,$8.06,€6.99,https://www.sierrafoxhobbies.com/fr/1594-tige-de-lancement-6-mm.html,NEEDED - The kit above already includes a launch rod but it's too short and and not stable enough for a rocket of this size
 Shipping Fees for Gotronic Shop,1,$5.18,€4.50,https://www.gotronic.fr/,Shipping Fees for Gotronic Shop
 Shipping Fees for Sierra Fox Hobbies Shop,1,$11.54,€10.0,https://www.sierrafoxhobbies.com/,Shipping Fees for Sierra Fox Hobbies Shop
-Total Price (USD):,$169.93,Total Price (EUR): €147.52, I've already bought some of the components myself before Stardance started; the total price is the sum of the components I still need to buy for the rocket and the trigger system. I'v converted all EUR prices to USD using exchange rate of 1 EUR = 1.15 USD.,lint,lint
+Total Price (USD):,$169.93,Total Price (EUR): €147.52,,,I've already bought some of the components myself before Stardance started; the total price is the sum of the components I still need to buy for the rocket and the trigger system. I'v converted all EUR prices to USD using exchange rate of 1 EUR = 1.15 USD.
