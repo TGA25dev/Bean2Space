@@ -50,8 +50,13 @@ def get_telemetry(imu_offsets:dict, ground_pressure:float, demo:bool=False) -> d
     if demo:
         global demo_alt, demo_alt_counter
         demo_alt_counter += 1
-        if demo_alt_counter % 10 == 0: #increments demo alt every 10 calls
+
+        if demo_alt_counter % 10 == 0 and demo_alt_counter < 100: #increments demo alt every 10 calls for the 100 first calls
             demo_alt += 1.0
+
+        elif demo_alt_counter % 10 == 0 and demo_alt_counter < 200:
+            demo_alt = max(0.0, demo_alt - 1.0)
+
         altitude = demo_alt
 
     imu_raw = imu.get_all_data()
