@@ -25,6 +25,9 @@ ap_should_stop = False
 telemetry = None
 transmitter = None
 
+telemetry_sequence_number = 0
+message_sequence_number = 0
+
 timestamp = 0.0
 _last_tick = time.ticks_ms()
 
@@ -46,7 +49,7 @@ def send_live_log(text, level="INFO"):
         bool: Indicates if the log message was sent successfully or not
     """
 
-    global timestamp, flight_id, ground_station_mac, esp_now_ready, transmitter
+    global timestamp, flight_id, ground_station_mac, esp_now_ready, transmitter, message_sequence_number
 
     #print(esp_now_ready, transmitter)
 
@@ -55,7 +58,8 @@ def send_live_log(text, level="INFO"):
         return False
 
     message = f"[{level}]:{text}"
-    sent_msg = send_message(transmitter, ground_station_mac, message, timestamp, flight_id)
+    message_sequence_number += 1
+    sent_msg = send_message(transmitter, ground_station_mac, message, timestamp, flight_id, message_sequence_number, rocket.state)
 
     return sent_msg
 
@@ -104,7 +108,7 @@ def power_up() -> None:
     """
 
     global ground_pressure, calibrated
-    global ground_station_mac, esp_now_ready ,timestamp, flight_id, transmitter
+    global ground_station_mac, esp_now_ready ,timestamp, flight_id, transmitter, telemetry_sequence_number
     print(f"Powering up the system... (ID: {flight_id})")
 
     onboard_led.on()
@@ -211,8 +215,11 @@ def power_up() -> None:
             #print(f"[{timestamp}] Flight Telemetry: {telemetry}")
             #END DEBUG
 
-            send_telemetry(transmitter, ground_station_mac, telemetry, timestamp, flight_id)
-
+            telemetry_sequence_number += 1
+            sent = send_telemetry(transmitter, ground_station_mac, telemetry, timestamp, flight_id, telemetry_sequence_number, rocket.state)
+            if not sent:
+                print("Radio transmission failed!")
+        
         wdt.feed() #reset watchdog timer
         update_system_clock()
         time.sleep(0.1) #10Hz sampling rate 

@@ -35,7 +35,7 @@ def start_wireless_transmiter(ground_station_mac:bytes):
 
     return sender
 
-def send_telemetry(sender:espnow.ESPNow, ground_station_mac:bytes, telemetry_data:dict, timestamp:float, flight_id:int) -> bool:
+def send_telemetry(sender:espnow.ESPNow, ground_station_mac:bytes, telemetry_data:dict, timestamp:float, flight_id:int, telemetry_sequence_number:int, flight_state:str) -> bool:
     """
     Sends telemetry data to the ground station using ESPNow protocol
 
@@ -45,6 +45,8 @@ def send_telemetry(sender:espnow.ESPNow, ground_station_mac:bytes, telemetry_dat
         telemetry_data (dict): Dictionary containing telemetry data (altitude, velocity)
         timestamp (float): Current timestamp to be sent with the telemetry data
         flight_id (int): Unique flight identifier to be sent with the telemetry data
+        telemetry_sequence_number (int): Sequence number of the telemetry packet to be sent
+        flight_state (str): Current state of the flight to be sent with the telemetry data
     
     returns:
         tuple: (bool) ndicates if the packet was sent successfully
@@ -65,18 +67,18 @@ def send_telemetry(sender:espnow.ESPNow, ground_station_mac:bytes, telemetry_dat
 
     packet_type = "telemetry"
     
-    telemetry_string = f"{timestamp},{packet_type},{flight_id},{temperature:.2f},{absolute_pressure:.2f},{relative_pressure:.2f},{altitude:.2f},{accel_x:.4f},{accel_y:.4f},{accel_z:.4f},{gyro_x:.4f},{gyro_y:.4f},{gyro_z:.4f},{temp_imu:.2f}"
+    telemetry_string = f"{timestamp},{packet_type},{telemetry_sequence_number},{flight_state},{flight_id},{temperature:.2f},{absolute_pressure:.2f},{relative_pressure:.2f},{altitude:.2f},{accel_x:.4f},{accel_y:.4f},{accel_z:.4f},{gyro_x:.4f},{gyro_y:.4f},{gyro_z:.4f},{temp_imu:.2f}"
     
     try:
-        sender.send(ground_station_mac, telemetry_string, False) #False because no ACK (to avoid blocking the flight)
-        return True
+        result = sender.send(ground_station_mac, telemetry_string, True) #True/False ACK flag
+        return bool(result)
 
     except OSError as e:
         print("Error sending telemetry data: ", e)
         return False
 
 
-def send_message(sender:espnow.ESPNow, ground_station_mac:bytes, message:str, timestamp:float, flight_id:int) -> bool:
+def send_message(sender:espnow.ESPNow, ground_station_mac:bytes, message:str, timestamp:float, flight_id:int, message_sequence_number:int, flight_state:str) -> bool:
     """
     Sends a message to the ground station using ESPNow protocol
     
@@ -86,13 +88,15 @@ def send_message(sender:espnow.ESPNow, ground_station_mac:bytes, message:str, ti
         message (str): Message string to be sent
         timestamp (float): Current timestamp to be sent with the message
         flight_id (int): Unique flight identifier to be sent with the message
+        message_sequence_number (int): Sequence number of the message packet to be sent
+        flight_state (str): Current state of the flight to be sent with the message
         
     returns:
         bool: Indicates if the message was sent successfully
     """
 
     packet_type = "message"
-    message_string = f"{timestamp},{packet_type},{flight_id},{message}"
+    message_string = f"{timestamp},{packet_type},{message_sequence_number},{flight_state},{flight_id},{message}"
 
     try: 
         sender.send(ground_station_mac, message_string, False) #False because no ACK (to avoid blocking the flight)
