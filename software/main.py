@@ -13,6 +13,8 @@ from software.modules.calibration import calibrate_sensors
 from software.modules.telemetry import get_telemetry
 from software.modules.esp_now import send_telemetry, send_message, start_wireless_transmiter
 
+from software.modules.state_manager import RocketState
+
 machine.freq(160000000)
 
 ground_station_mac = b'X\x8c\x81\xae\x16\xb0'
@@ -27,19 +29,9 @@ timestamp = 0.0
 _last_tick = time.ticks_ms()
 
 flight_id = random.randint(1000, 9999)
-rocket_state = "standby" #possible states: standby, armed, flight, apogee, descent, landed 
+rocket = RocketState()
 
 ground_pressure = 0.0
-max_altitude = 0.0
-last_altitude = 0.0
-last_time_ms = 0
-velocity = 0.0
-filtered_altitude = 0.0
-launch_counter = 0
-
-apogee_counter = 0
-descent_counter = 0
-landed_counter = 0
 
 def send_live_log(text, level="INFO"):
     """
@@ -87,104 +79,18 @@ def update_system_clock() -> None:
 
     _last_tick = current_tick
 
-def check_rocket_state(altitude: float) -> None:
-    """
-    Updates the rocket state based on the current altitude, calculated velocity,
-    and threshold filters to prevent false triggers from sensor noise
+def handle_state_event(event:str):
+    if event == "ARMED":
+        send_live_log("Rocket is armed and ready for launch!", "INFO")
 
-    args:
-        altitude (float): Current altitude of the rocket in meters
+    elif event == "LAUNCH_DETECTED":
+        send_live_log("Launch detected! Rocket is in flight!", "INFO")
 
-    returns:
-        None
-    """
+    elif event == "APOGEE_DETECTED":
+        send_live_log(f"Apogee detected! Apogee at {rocket.max_altitude}m !", "INFO")
 
-    global rocket_state, max_altitude, last_altitude, last_time_ms, velocity, filtered_altitude
-    global launch_counter, apogee_counter, descent_counter, landed_counter
-
-    current_time_ms = time.ticks_ms()
-
-    if last_time_ms == 0: #first reading so no previous data to compare to
-        filtered_altitude = altitude
-    else:
-        filtered_altitude = (filtered_altitude * 0.7) + (altitude * 0.3) #smooths out altitude readings to reduce noise
-    
-    if last_time_ms > 0:
-        delta_t = time.ticks_diff(current_time_ms, last_time_ms) / 1000.0 #convert ms to seconds
-
-        if delta_t > 0:
-            raw_velocity = (filtered_altitude - last_altitude) / delta_t #raw velocity is calculated as the change in altitude over the change in time (m/s)
-            
-            velocity = (velocity * 0.8) + (raw_velocity * 0.2) #smooths out velocity readings to reduce noise (bcz again we don't like noise)
-            
-    last_altitude = filtered_altitude
-    last_time_ms = current_time_ms
-
-    if rocket_state == "standby" and calibrated:
-        rocket_state = "armed"
-        launch_counter = 0
-        apogee_counter = 0
-        descent_counter = 0
-        landed_counter = 0
-
-        print("Rocket is now ARMED! Ready for launch")
-        send_live_log("Rocket is now ARMED! Ready for launch", level="INFO")
-
-    elif rocket_state == "armed":
-        if filtered_altitude > 2.0: #alt exceeds 2 meters
-            launch_counter += 1
-
-            if launch_counter >= 3: #2m up for 3 consecutives readings
-                rocket_state = "flight"
-                max_altitude = filtered_altitude
-                apogee_counter = 0
-                descent_counter = 0
-                landed_counter = 0
-                print("LAUNCH DETECTED! Rocket is in FLIGHT mode!")
-                send_live_log("LAUNCH DETECTED! Rocket is in FLIGHT mode!", level="INFO")
-        else:
-            launch_counter = 0
-
-    elif rocket_state == "flight":
-        if filtered_altitude > max_altitude: #keep track of max altitude reached during the flight
-            max_altitude = filtered_altitude
-
-        if velocity <= 0.2 and (max_altitude - filtered_altitude) > 1.5: #if descending and dropped more than 1.5m from peak
-            apogee_counter += 1
-            if apogee_counter >= 3: #3 readings to confirm
-                rocket_state = "apogee"
-                descent_counter = 0
-                landed_counter = 0
-                print(f"APOGEE DETECTED! Peak Altitude: {max_altitude:.2f}m")
-                send_live_log(f"APOGEE DETECTED! Peak Altitude: {max_altitude:.2f}m", level="INFO")
-        else:
-            apogee_counter = 0 #reset counter
-
-    elif rocket_state == "apogee":
-        rocket_state = "descent"
-        descent_counter = 0
-        print("Transitioning to DESCENT mode")
-        send_live_log("Transitioning to DESCENT mode", level="INFO")
-
-    elif rocket_state == "descent":
-        if velocity < -1.0: #negative velocity (descending) and faster than 1 m/s
-            descent_counter += 1
-            if descent_counter >= 3: #3 readings again
-                descent_counter = 0 
-                
-        if filtered_altitude < 3.0 and abs(velocity) < 0.3: #alt below 3 meters and velocity close to 0
-            landed_counter += 1
-
-            if landed_counter >= 20: #stable for 20 readings (~2 seconds at 10Hz)
-                rocket_state = "landed"
-                print("TOUCHDOWN has been detected!")
-                send_live_log("TOUCHDOWN has been detected!", level="INFO")
-        else:
-            landed_counter = 0
-
-    elif rocket_state == "landed":
-        #TODO: implement post landing procedeures
-        pass
+    elif event == "TOUCHDOWN_DETECTED":
+        send_live_log("Touchdown detected!", "INFO")
 
 def power_up() -> None:
     """
@@ -197,7 +103,8 @@ def power_up() -> None:
         None
     """
 
-    global ground_station_mac, calibrated ,esp_now_ready ,timestamp, flight_id, transmitter
+    global ground_pressure, calibrated
+    global ground_station_mac, esp_now_ready ,timestamp, flight_id, transmitter
     print(f"Powering up the system... (ID: {flight_id})")
 
     onboard_led.on()
@@ -271,7 +178,6 @@ def power_up() -> None:
 
         if calibrated:
             telemetry = get_telemetry(imu_offsets, ground_pressure)
-            check_rocket_state(telemetry["altitude"])
             #print(telemetry)
 
         handle_web_request(server_socket) #handle webpanel requests
@@ -289,20 +195,25 @@ def power_up() -> None:
     else:
         print("System entered passive holding mode. Standing by...")
 
+    wdt = machine.WDT(timeout=5000) #5s watchdog timer
 
     while True:
         if esp_now_ready and calibrated:
             
-            telemetry = get_telemetry(imu_offsets, ground_pressure, demo=True)
-            check_rocket_state(telemetry["altitude"])
+            telemetry = get_telemetry(imu_offsets, ground_pressure, demo=False)
+
+            event = rocket.update(telemetry["altitude"], calibrated)
+            if event:
+                handle_state_event(event)
 
             #DEBUG
-            #print(rocket_state, telemetry["altitude"])
+            #print(event, telemetry["altitude"])
             #print(f"[{timestamp}] Flight Telemetry: {telemetry}")
             #END DEBUG
 
             send_telemetry(transmitter, ground_station_mac, telemetry, timestamp, flight_id)
 
+        wdt.feed() #reset watchdog timer
         update_system_clock()
         time.sleep(0.1) #10Hz sampling rate 
 
