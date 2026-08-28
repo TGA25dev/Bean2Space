@@ -5,7 +5,6 @@ import sys
 if "/software" not in sys.path:
     sys.path.append("/software")
 
-from modules.calibration import calibrate_sensors
 from modules.esp_now import start_wireless_transmiter
 
 from software.utils.buzzer_manager import BuzzerManager
@@ -183,7 +182,7 @@ def handle_web_request(server_socket:socket.socket) -> None:
 
         # Check what the browser is requesting
         if "GET /calibrate" in request:
-            calibrate_sensors()  #calibration function from calibration.py
+            __main__.apply_calibration()
 
         if "GET /stop-ap" in request:
             __main__.ap_should_stop = True

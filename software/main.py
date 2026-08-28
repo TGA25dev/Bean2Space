@@ -35,6 +35,14 @@ flight_id = random.randint(1000, 9999)
 rocket = RocketState()
 
 ground_pressure = 0.0
+imu_offsets = {
+    "ay": 0.0,
+    "ax": 0.0,
+    "az": 0.0,
+    "gx": 0.0,
+    "gy": 0.0,
+    "gz": 0.0
+}
 
 def send_live_log(text, level="INFO"):
     """
@@ -96,6 +104,21 @@ def handle_state_event(event:str):
     elif event == "TOUCHDOWN_DETECTED":
         send_live_log("Touchdown detected!", "INFO")
 
+def apply_calibration() -> None:
+    """
+    Performs the calibration process and updates the global variables for ground pressure and IMU offsets
+
+    args:
+        None
+    returns:
+        None
+    """
+
+    global ground_pressure, imu_offsets, calibrated
+    ground_pressure, imu_offsets = calibrate_sensors()
+    calibrated = True
+    print("Calibration complete! System Armed.")
+
 def power_up() -> None:
     """
     Performs the power-up sequence
@@ -107,7 +130,7 @@ def power_up() -> None:
         None
     """
 
-    global ground_pressure, calibrated
+    global ground_pressure, calibrated, imu_offsets
     global ground_station_mac, esp_now_ready ,timestamp, flight_id, transmitter, telemetry_sequence_number
     print(f"Powering up the system... (ID: {flight_id})")
 
@@ -165,9 +188,8 @@ def power_up() -> None:
     while True:
         if not calibrated: #calibrate if not done yet
             time.sleep(1.5)
-            ground_pressure, imu_offsets = calibrate_sensors()
-            calibrated = True
-            print("Calibration complete! System Armed.")
+
+            apply_calibration()
         
         if ap_should_stop or esp_now_should_start: #check if state change was requested by the web panel
             time.sleep(0.1)
