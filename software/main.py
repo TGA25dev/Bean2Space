@@ -3,7 +3,7 @@ import random
 import machine
 
 from software.utils.buzzer_manager import BuzzerManager
-buzzer = BuzzerManager(2) #pin 2
+buzzer = BuzzerManager(2, disabled=True) #pin 2
 
 from software.utils.led_manager import LEDManager
 onboard_led = LEDManager(1) #LED on pin 1
