@@ -120,7 +120,7 @@ def apply_calibration() -> None:
     ground_pressure, imu_offsets = calibrate_sensors()
     calibrated = True
 
-    time.sleep(0.3)
+    time.sleep(0.5)
     print("Calibration complete! System Armed.")
     for _ in range(2):
         buzzer.on()
@@ -171,7 +171,7 @@ def power_up() -> None:
     wait_for_connections_printed = True #print flag
     while not check_for_connections(wifi_access_point): #while no device is connected
         
-        for _ in range(3):
+        for _ in range(2):
             onboard_led.on()
             time.sleep(0.2)
             onboard_led.off()
@@ -231,7 +231,7 @@ def power_up() -> None:
         print("Entering Flight Mode... Telemetry will be sent to the ground station")
         print("Starting internal temperature monitoring...")
 
-        for _ in range(4):
+        for _ in range(3):
             onboard_led.on()
             buzzer.on()
             time.sleep(0.25)
@@ -239,6 +239,7 @@ def power_up() -> None:
             buzzer.off()
             time.sleep(0.25)
 
+        time.sleep(0.5)
     else:
         print("System entered passive holding mode. Standing by...")
 
@@ -264,7 +265,7 @@ def power_up() -> None:
                 print("Radio transmission failed!")
         
         internal_temp_thresold_exceeded, current_temp = check_internal_temp(85.0) #thresold of 85C
-        print(f"DEBUG: Internal temperature: {current_temp:.2f}C")
+        #print(f"DEBUG: Internal temperature: {current_temp:.2f}C")
 
         if not internal_temp_thresold_exceeded and current_temp > 75.0:
             print(f"WARNING: Internal temperature is getting high ({current_temp:.2f}C)!")
