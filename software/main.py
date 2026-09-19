@@ -13,6 +13,8 @@ from software.modules.calibration import calibrate_sensors
 from software.modules.telemetry import get_telemetry
 from software.modules.esp_now import send_telemetry, send_message, start_wireless_transmiter
 
+from software.utils.internal_temp_manager import read_internal_temp, check_internal_temp
+
 from software.modules.state_manager import RocketState
 
 machine.freq(160000000)
@@ -117,7 +119,17 @@ def apply_calibration() -> None:
     global ground_pressure, imu_offsets, calibrated
     ground_pressure, imu_offsets = calibrate_sensors()
     calibrated = True
+
+    time.sleep(0.3)
     print("Calibration complete! System Armed.")
+    for _ in range(2):
+        buzzer.on()
+        onboard_led.on()
+        time.sleep(0.15)
+        buzzer.off()
+        onboard_led.off()
+        time.sleep(0.15)
+
 
 def power_up() -> None:
     """
@@ -217,6 +229,15 @@ def power_up() -> None:
         esp_now_ready = True
 
         print("Entering Flight Mode... Telemetry will be sent to the ground station")
+        print("Starting internal temperature monitoring...")
+
+        for _ in range(4):
+            onboard_led.on()
+            buzzer.on()
+            time.sleep(0.25)
+            onboard_led.off()
+            buzzer.off()
+            time.sleep(0.25)
 
     else:
         print("System entered passive holding mode. Standing by...")
@@ -242,6 +263,17 @@ def power_up() -> None:
             if not sent:
                 print("Radio transmission failed!")
         
+        internal_temp_thresold_exceeded, current_temp = check_internal_temp(85.0) #thresold of 85C
+        print(f"DEBUG: Internal temperature: {current_temp:.2f}C")
+
+        if not internal_temp_thresold_exceeded and current_temp > 75.0:
+            print(f"WARNING: Internal temperature is getting high ({current_temp:.2f}C)!")
+            send_live_log(f"Internal temperature is getting high ({current_temp:.2f}C)!", "WARNING")
+
+        elif internal_temp_thresold_exceeded:
+            print("WARNING: Internal temperature exceeds threshold! ({current_temp:.2f}C) System may be overheating!")
+            send_live_log("Internal temperature exceeds threshold! ({current_temp:.2f}C) System may be overheating!", "WARNING")
+
         wdt.feed() #reset watchdog timer
         update_system_clock()
         time.sleep(0.1) #10Hz sampling rate 
