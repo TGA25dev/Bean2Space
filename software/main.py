@@ -102,6 +102,9 @@ def handle_state_event(event:str):
 
     elif event == "APOGEE_DETECTED":
         send_live_log(f"Apogee detected! Apogee at {rocket.max_altitude}m !", "INFO")
+        buzzer.on()
+        time.sleep(0.2)
+        buzzer.off()
 
     elif event == "TOUCHDOWN_DETECTED":
         send_live_log("Touchdown detected!", "INFO")
@@ -128,7 +131,7 @@ def apply_calibration() -> None:
         time.sleep(0.15)
         buzzer.off()
         onboard_led.off()
-        time.sleep(0.15)
+        time.sleep(0.25)
 
 
 def power_up() -> None:
@@ -143,6 +146,7 @@ def power_up() -> None:
     """
 
     global ground_pressure, calibrated, imu_offsets
+    global esp_now_should_start, ap_should_stop
     global ground_station_mac, esp_now_ready ,timestamp, flight_id, transmitter, telemetry_sequence_number
     print(f"Powering up the system... (ID: {flight_id})")
 
@@ -202,8 +206,24 @@ def power_up() -> None:
             time.sleep(1.5)
 
             apply_calibration()
-        
+
+        if calibrated:
+            telemetry = get_telemetry(imu_offsets, ground_pressure)
+            #print(telemetry)
+
+        web_command = handle_web_request(server_socket)
+        if web_command == "start-esp-now":
+            esp_now_should_start = True
+            ap_should_stop = True
+
+        elif web_command == "stop-ap":
+            ap_should_stop = True
+            
+        elif web_command == "calibrate":
+            apply_calibration()
+
         if ap_should_stop or esp_now_should_start: #check if state change was requested by the web panel
+            print("Web command received: stopping Wi-Fi access point")
             time.sleep(0.1)
             
             try:
@@ -214,19 +234,24 @@ def power_up() -> None:
             stop_access_point(wifi_access_point)
             break  #stop server
 
-        if calibrated:
-            telemetry = get_telemetry(imu_offsets, ground_pressure)
-            #print(telemetry)
-
-        handle_web_request(server_socket) #handle webpanel requests
-
         update_system_clock()
         time.sleep(0.05)
 
+        time.sleep(0.5)
+
     if esp_now_should_start:
         print("Starting ESPNOW transmitter...")
-        transmitter = start_wireless_transmiter(ground_station_mac)
-        esp_now_ready = True
+        try:
+            transmitter = start_wireless_transmiter(ground_station_mac)
+            print("ESPNOW transmitter initialized")
+            esp_now_ready = True
+
+        except Exception as error:
+            print("ESPNOW startup failed:", repr(error))
+            buzzer.on()
+            time.sleep(1)
+            buzzer.off()
+            raise
 
         print("Entering Flight Mode... Telemetry will be sent to the ground station")
         print("Starting internal temperature monitoring...")
@@ -238,8 +263,6 @@ def power_up() -> None:
             onboard_led.off()
             buzzer.off()
             time.sleep(0.25)
-
-        time.sleep(0.5)
     else:
         print("System entered passive holding mode. Standing by...")
 
@@ -250,14 +273,15 @@ def power_up() -> None:
             
             telemetry = get_telemetry(imu_offsets, ground_pressure, demo=False)
 
-            event = rocket.update(telemetry["altitude"], calibrated)
+            acceleration = (
+                telemetry["accel_x"],
+                telemetry["accel_y"],
+                telemetry["accel_z"]
+            )
+            event = rocket.update(telemetry["altitude"], calibrated, acceleration=acceleration)
+            
             if event:
                 handle_state_event(event)
-
-            #DEBUG
-            #print(event, telemetry["altitude"])
-            #print(f"[{timestamp}] Flight Telemetry: {telemetry}")
-            #END DEBUG
 
             telemetry_sequence_number += 1
             sent = send_telemetry(transmitter, ground_station_mac, telemetry, timestamp, flight_id, telemetry_sequence_number, rocket.state)
@@ -265,9 +289,14 @@ def power_up() -> None:
                 print("Radio transmission failed!")
         
         internal_temp_thresold_exceeded, current_temp = check_internal_temp(85.0) #thresold of 85C
-        #print(f"DEBUG: Internal temperature: {current_temp:.2f}C")
 
-        if not internal_temp_thresold_exceeded and current_temp > 75.0:
+        #DEBUG
+        #print(f"Internal temperature: {current_temp:.2f}C")
+        #print(event, telemetry["altitude"], acceleration, rocket.state)
+        #print(f"[{timestamp}] Flight Telemetry: {telemetry}")
+        #END DEBUG
+
+        if not internal_temp_thresold_exceeded and current_temp >= 75.0:
             print(f"WARNING: Internal temperature is getting high ({current_temp:.2f}C)!")
             send_live_log(f"Internal temperature is getting high ({current_temp:.2f}C)!", "WARNING")
 

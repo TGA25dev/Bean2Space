@@ -163,7 +163,7 @@ def setup_web_server(port=PORT) -> socket.socket:
 
     return server_socket
     
-def handle_web_request(server_socket:socket.socket) -> None:
+def handle_web_request(server_socket:socket.socket) -> str|None:
     """
     Handle one request if a client is waiting, then return
 
@@ -171,28 +171,30 @@ def handle_web_request(server_socket:socket.socket) -> None:
         server_socket (socket.socket): The server socket
 
     returns:
-        None
+        str or None: The requested command (if one was received)
     """
 
     try:
         client, addr = server_socket.accept()
         request = client.recv(1024).decode('utf-8')
+        command = None
 
         # Check what the browser is requesting
         if "GET /calibrate" in request:
-            __main__.apply_calibration()
+            command = "calibrate"
 
         if "GET /stop-ap" in request:
-            __main__.ap_should_stop = True
+            command = "stop-ap"
 
         if "GET /buzzer" in request:
+            print("Web command received: buzzer")
             buzzer.on()
             time.sleep(0.5)
             buzzer.off()
 
         if "GET /start-esp-now" in request:
-            __main__.ap_should_stop = True
-            __main__.esp_now_should_start = True
+            print("Web command received: start ESP-NOW")
+            command = "start-esp-now"
 
         
         response = "HTTP/1.1 200 OK\r\n"
@@ -201,6 +203,7 @@ def handle_web_request(server_socket:socket.socket) -> None:
         
         client.send(response.encode('utf-8'))
         client.close()
+        return command
         
     except OSError:
         pass  #no client waiting we just don't do anything
