@@ -1,4 +1,5 @@
 import time 
+import math
 
 class RocketState:
     def __init__(self):
@@ -13,7 +14,7 @@ class RocketState:
         self.apogee_count = 0
         self.landed_count = 0
 
-    def update(self, altitude, calibrated=True, now_ms=None):
+    def update(self, altitude, calibrated=True, now_ms=None, acceleration=(0.0, 0.0, 0.0)):
         if now_ms is None:
             now_ms = time.ticks_ms()
 
@@ -25,12 +26,20 @@ class RocketState:
                 return "ARMED"
 
         elif self.state == "armed":
-            if self.filtered_altitude > 2.0:
+            acceleration_magnitude = math.sqrt(
+                acceleration[0] ** 2
+                + acceleration[1] ** 2
+                + acceleration[2] ** 2
+            )
+            altitude_triggered = self.filtered_altitude > 2.0
+            acceleration_triggered = acceleration_magnitude > 1.5
+
+            if altitude_triggered or acceleration_triggered:
                 self.launch_count += 1
             else:
                 self.launch_count = 0
 
-            if self.launch_count >= 2: #if above 2 meters for 2 consecutive reads
+            if self.launch_count >= 2: #if either trigger is active for 2 consecutive reads
                 self.state = "flight"
                 self.max_altitude = self.filtered_altitude
                 return "LAUNCH_DETECTED"
