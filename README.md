@@ -79,9 +79,9 @@ The box has a support to add velcro to it and put the two battery holders. It al
 | | GND | GND |
 | | SDA | GPIO5 (D4) |
 | | SCL | GPIO6 (D5) |
-| **Buzzer** | Signal (+) | GPIO3 (D2) |
+| **Buzzer** | Signal (+) | GPIO4 (D3) |
 | | (-) | GND |
-| **Status LED** | Anode (+) | GPIO2 (D1) |
+| **Status LED** | Anode (+) | GPIO1 (D0) |
 | | (-) | GND |
 
 

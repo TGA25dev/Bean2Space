@@ -8,9 +8,7 @@ if "/software" not in sys.path:
 from modules.esp_now import start_wireless_transmiter
 
 from software.utils.buzzer_manager import BuzzerManager
-buzzer = BuzzerManager(2) #pin 2
-
-import __main__ #type: ignore
+buzzer = BuzzerManager(4) #pin 4
 
 SSID = "HRC-01"
 PASSWORD = "xiao1234"

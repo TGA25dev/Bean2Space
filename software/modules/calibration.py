@@ -6,7 +6,7 @@ from software.utils.mpu6050 import MPU6050
 from software.utils.bmp280 import BMP280
 
 from software.utils.buzzer_manager import BuzzerManager
-buzzer = BuzzerManager(2) #pin 2
+buzzer = BuzzerManager(4) #pin 4
 
 from software.utils.led_manager import LEDManager
 onboard_led = LEDManager(1) #LED on pin 1

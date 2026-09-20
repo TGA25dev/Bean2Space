@@ -1,7 +1,7 @@
 from machine import Pin
 
 class BuzzerManager:
-    def __init__(self, pin_number=2, disabled=False):
+    def __init__(self, pin_number=4, disabled=False):
         self.buzzer_pin = Pin(pin_number, Pin.OUT)
         self.disabled = disabled
 
