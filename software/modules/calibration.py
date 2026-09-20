@@ -85,7 +85,7 @@ def calibrate_sensors() -> tuple:
 
     imu_offsets = {
         "ax": sum(acc_x_readings) / 50,
-        "ay": (sum(acc_y_readings) / 50) - 1.0, #subtracts 1g from the y axis to account for gravity
+        "ay": sum(acc_y_readings) / 50,
         "az": sum(acc_z_readings) / 50,
         "gx": sum(gyro_x_readings) / 50,
         "gy": sum(gyro_y_readings) / 50,
