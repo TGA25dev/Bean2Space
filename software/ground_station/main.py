@@ -85,15 +85,8 @@ while True:
 
                         last_telemetry_sequence = sequence
 
-                        print(
-                            f"Timestamp: {timestamp} | "
-                            f"Telemetry Sequence: {sequence_number} | "
-                            f"Flight ID: {flight_id} | "
-                            f"State: {flight_state} | "
-                            f"Temperature: {temperature}°C | "
-                            f"Pressure: {absolute_pressure} Pa | "
-                            f"Altitude: {altitude} m | "
-                            f"Signal: {rssi} dBm")
+                        data_string = f"{timestamp},{packet_type},{sequence_number},{rssi},{flight_state},{flight_id},{temperature},{absolute_pressure},{relative_pressure},{altitude},{accel_x},{accel_y},{accel_z},{gyro_x},{gyro_y},{gyro_z},{temp_imu}"
+                        print(data_string)
                         
                     elif packet_type == "message":
                         if len(parts) < 6:
@@ -104,18 +97,20 @@ while True:
                         if last_message_sequence is not None:
                             missing = sequence - last_message_sequence - 1
                             if missing > 0:
-                                print(f"Warning: {missing} message packets missing (last seq: {last_message_sequence}, current seq: {sequence})")
+                                print(f"WARNING: {missing} message packets missing (last seq: {last_message_sequence}, current seq: {sequence})")
 
                         last_message_sequence = sequence
 
-                        print(f"Timestamp: {timestamp} | Message Sequence: {sequence_number} | Flight ID: {flight_id} | State: {flight_state} | Message: {message} | Signal: {rssi} dBm")
+                        message_string = f"{timestamp},{packet_type},{sequence_number},{rssi},{flight_state},{flight_id},{message}"
+                        print(message_string)
+
                     else:
-                        print(f"Timestamp: {timestamp} | Unknown packet type: {packet_type} | Signal: {rssi}dBm")
+                        print(f"WARNING | Timestamp: {timestamp} | Unknown packet type '{packet_type}' received. Raw data: {data_payload} | Signal: {rssi}dBm")
 
                 except ValueError as e:
-                    print("Packet parsing warning:", e)
+                    print("ERROR Packet parsing warning:", e)
                 
         except Exception as err:
-            print("Packet parsing warning:", err)
+            print("ERROR Packet parsing warning:", err)
             
     time.sleep_ms(5) #tiny delay to allow other tasks to run
